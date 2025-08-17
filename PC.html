@@ -1,0 +1,341 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Builder Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8 text-indigo-700">PC Builder Calculator</h1>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Добавить комплектующее</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Название</label>
+                    <input type="text" id="componentName" placeholder="Например: RTX 4090"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Цена (₽)</label>
+                    <input type="number" id="componentPrice" placeholder="0"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Ссылка на товар</label>
+                    <input type="url" id="componentUrl" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Категория</label>
+                    <div class="relative">
+                        <select id="componentCategory" class="w-full px-3 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="cpu">Процессор</option>
+                            <option value="gpu">Видеокарта</option>
+                            <option value="ram">Оперативная память</option>
+                            <option value="mb">Материнская плата</option>
+                            <option value="ssd">SSD накопитель</option>
+                            <option value="hdd">Жесткий диск</option>
+                            <option value="psu">Блок питания</option>
+                            <option value="case">Корпус</option>
+                            <option value="cooler">Охлаждение</option>
+                            <option value="other">Другое</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="addComponent" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                <i class="fas fa-plus-circle mr-2"></i> Добавить
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Категория</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Название</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Цена</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ссылка</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="componentsTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Строки будут добавляться сюда -->
+                        <tr id="noComponentsRow">
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">Добавьте ваши первые комплектующие</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="bg-gray-50">
+                        <tr>
+                            <td colspan="3" class="px-6 py-3 text-right font-medium text-gray-700">Итого:</td>
+                            <td id="totalPrice" class="px-6 py-3 text-left font-bold text-indigo-600">0 ₽</td>
+                            <td class="px-6 py-3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center text-sm text-gray-500">
+            <p>Сохраните вашу сборку, чтобы не потерять!</p>
+            <button id="saveBuild" class="mt-2 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                <i class="fas fa-save mr-2"></i> Сохранить сборку
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const components = JSON.parse(localStorage.getItem('pcComponents')) || [];
+            let total = 0;
+
+            // Иконки для категорий
+            const categoryIcons = {
+                cpu: 'microchip',
+                gpu: 'gamepad',
+                ram: 'memory',
+                mb: 'microchip',
+                ssd: 'hdd',
+                hdd: 'hard-drive',
+                psu: 'plug',
+                case: 'box',
+                cooler: 'fan',
+                other: 'question-circle'
+            };
+
+            // Цвета для категорий
+            const categoryColors = {
+                cpu: 'bg-blue-100 text-blue-800',
+                gpu: 'bg-purple-100 text-purple-800',
+                ram: 'bg-green-100 text-green-800',
+                mb: 'bg-yellow-100 text-yellow-800',
+                ssd: 'bg-indigo-100 text-indigo-800',
+                hdd: 'bg-gray-100 text-gray-800',
+                psu: 'bg-red-100 text-red-800',
+                case: 'bg-pink-100 text-pink-800',
+                cooler: 'bg-teal-100 text-teal-800',
+                other: 'bg-gray-100 text-gray-800'
+            };
+
+            // Отображение существующих компонентов
+            if (components.length > 0) {
+                document.getElementById('noComponentsRow').style.display = 'none';
+                components.forEach(component => {
+                    addComponentToTable(component);
+                    total += component.price;
+                });
+                updateTotalPrice();
+            }
+
+            // Добавление нового компонента
+            document.getElementById('addComponent').addEventListener('click', function() {
+                const name = document.getElementById('componentName').value.trim();
+                const price = parseFloat(document.getElementById('componentPrice').value);
+                const category = document.getElementById('componentCategory').value;
+
+                if (!name) {
+                    showError('Введите название компонента');
+                    return;
+                }
+
+                if (isNaN(price) || price <= 0) {
+                    showError('Введите корректную цену');
+                    return;
+                }
+
+                const component = {
+                    id: Date.now(),
+                    name,
+                    price,
+                    category,
+                    url: document.getElementById('componentUrl').value.trim()
+                };
+
+                components.push(component);
+                localStorage.setItem('pcComponents', JSON.stringify(components));
+
+                if (components.length === 1) {
+                    document.getElementById('noComponentsRow').style.display = 'none';
+                }
+
+                addComponentToTable(component);
+                total += price;
+                updateTotalPrice();
+
+                // Очистка полей
+                document.getElementById('componentName').value = '';
+                document.getElementById('componentPrice').value = '';
+                document.getElementById('componentUrl').value = '';
+                document.getElementById('componentName').focus();
+            });
+
+            // Сохранение сборки
+            document.getElementById('saveBuild').addEventListener('click', function() {
+                if (components.length === 0) {
+                    showError('Нет компонентов для сохранения');
+                    return;
+                }
+
+                const buildName = prompt('Введите название сборки:');
+                if (buildName) {
+                    const builds = JSON.parse(localStorage.getItem('pcBuilds')) || [];
+                    builds.push({
+                        name: buildName,
+                        components: [...components],
+                        total: total,
+                        date: new Date().toLocaleString()
+                    });
+                    localStorage.setItem('pcBuilds', JSON.stringify(builds));
+
+                    alert(`Сборка "${buildName}" сохранена!`);
+                }
+            });
+
+            // Функция добавления компонента в таблицу
+            function addComponentToTable(component) {
+                const row = document.createElement('tr');
+                row.className = 'fade-in';
+                row.id = `component-${component.id}`;
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <span class="inline-flex items-center justify-center h-8 w-8 rounded-full ${categoryColors[component.category]} mr-3">
+                                <i class="fas fa-${categoryIcons[component.category]}"></i>
+                            </span>
+                            <span class="text-sm font-medium text-gray-900 capitalize">${getCategoryName(component.category)}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${component.name}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${component.price.toLocaleString()} ₽</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="deleteComponent(${component.id})" class="text-red-600 hover:text-red-900 mr-3">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+
+                document.getElementById('componentsTable').appendChild(row);
+            }
+
+            // Функция удаления компонента
+            window.deleteComponent = function(id) {
+                const index = components.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    total -= components[index].price;
+                    components.splice(index, 1);
+                    localStorage.setItem('pcComponents', JSON.stringify(components));
+
+                    const row = document.getElementById(`component-${id}`);
+                    row.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                    setTimeout(() => row.remove(), 300);
+
+                    if (components.length === 0) {
+                        document.getElementById('noComponentsRow').style.display = '';
+                    }
+
+                    updateTotalPrice();
+                }
+            };
+
+            // Функция обновления общей суммы
+            function updateTotalPrice() {
+                document.getElementById('totalPrice').textContent = `${total.toLocaleString()} ₽`;
+            }
+
+            // Функция показа ошибки
+            function showError(message) {
+                const button = document.getElementById('addComponent');
+                button.classList.add('shake', 'bg-red-500');
+                setTimeout(() => {
+                    button.classList.remove('shake', 'bg-red-500');
+                }, 500);
+
+                alert(message);
+            }
+
+            // Функция получения читаемого названия категории
+            function getCategoryName(category) {
+                const names = {
+                    cpu: 'Процессор',
+                    gpu: 'Видеокарта',
+                    ram: 'Оперативная память',
+                    mb: 'Материнская плата',
+                    ssd: 'SSD накопитель',
+                    hdd: 'Жесткий диск',
+                    psu: 'Блок питания',
+                    case: 'Корпус',
+                    cooler: 'Охлаждение',
+                    other: 'Другое'
+                };
+                return names[category];
+            }
+
+            // Обработка нажатия Enter в полях ввода
+            document.getElementById('componentName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('componentPrice').focus();
+                }
+            });
+
+            document.getElementById('componentPrice').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('addComponent').click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
